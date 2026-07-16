@@ -1,0 +1,9 @@
+{
+  "name": "bedrock-go-multiplayer",
+  "version": "1.0.0",
+  "description": "Bedrock Go — real multiplayer backend (zero npm dependencies)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

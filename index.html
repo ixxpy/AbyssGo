@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Bedrock Go</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="theme-color" content="#1a0033">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bedrock Go">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0a0012;
+    --panel:#150324;
+    --panel2:#1c0630;
+    --panel3:#26073f;
+    --card: rgba(38,10,64,0.65);
+    --card-border: rgba(160,90,230,0.25);
+    --accent:#9d4edd;
+    --accent2:#c77dff;
+    --accent3:#e0aaff;
+    --text:#f3e6ff;
+    --muted:#a988c9;
+    --muted2:#7d5a9e;
+    --danger:#ff6b81;
+    --good:#8de3b0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 15% 0%, rgba(157,78,221,0.18), transparent 55%),
+      radial-gradient(ellipse at 85% 100%, rgba(90,24,154,0.22), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  h1,h2,h3,.brand,.big-num{ font-family:'Baloo 2', sans-serif; }
+  button{ font-family:inherit; }
+  ::-webkit-scrollbar{ width:0; height:0; }
+
+  #app-shell{
+    max-width:480px; margin:0 auto; height:100dvh;
+    display:flex; flex-direction:column; position:relative;
+    background:linear-gradient(180deg, #0d0018 0%, #0a0012 100%);
+  }
+  #screen{
+    flex:1; overflow-y:auto; padding:14px 14px 90px 14px;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* ---------- shared bits ---------- */
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .curpills{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pill{
+    display:flex; align-items:center; gap:6px;
+    background:var(--panel2); border:1px solid var(--card-border);
+    padding:6px 12px 6px 8px; border-radius:999px; font-size:13px; font-weight:600;
+    color:var(--text);
+  }
+  .pill .plus{
+    width:18px; height:18px; border-radius:50%; background:var(--accent);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800;
+    margin-left:2px; border:none; cursor:pointer;
+  }
+  .icon-btn{ background:var(--panel2); border:1px solid var(--card-border); border-radius:12px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; }
+  .icon-btn svg{ width:18px; height:18px; }
+  .cube-ico{ width:14px; height:14px; background:linear-gradient(135deg,#e0aaff,#7b2cbf); border-radius:3px; transform:rotate(8deg); box-shadow:0 0 6px rgba(180,100,255,0.6); }
+  .tag-ico{ width:14px; height:10px; background:linear-gradient(135deg,#ff9ad2,#c77dff); border-radius:3px 3px 3px 0; }
+
+  .card{
+    background:var(--card); border:1px solid var(--card-border); border-radius:18px;
+    padding:16px; margin-bottom:14px; backdrop-filter:blur(6px);
+  }
+  .card h3{ margin:0 0 8px 0; font-size:16px; }
+  .muted{ color:var(--muted); font-size:13px; line-height:1.6; }
+
+  .btn{
+    border:none; border-radius:12px; padding:10px 16px; font-weight:700; font-size:14px;
+    cursor:pointer; color:var(--text); background:var(--panel2); border:1px solid var(--card-border);
+  }
+  .btn-primary{ background:linear-gradient(135deg,var(--accent),#7b2cbf); color:#fff; box-shadow:0 4px 16px rgba(157,78,221,0.35); }
+  .btn-ghost{ background:transparent; border:1px solid var(--card-border); }
+  .btn-danger{ background:rgba(255,107,129,0.15); border:1px solid rgba(255,107,129,0.4); color:#ffb3c0; }
+  .btn-block{ width:100%; }
+  .btn-row{ display:flex; gap:8px; margin-top:10px; }
+  .btn:active{ transform:scale(0.97); }
+
+  .section-title{ font-size:19px; font-weight:800; margin:4px 0 12px 2px; font-family:'Baloo 2', sans-serif; }
+
+  .toptabs{ display:flex; gap:6px; margin-bottom:14px; background:var(--panel2); padding:5px; border-radius:14px; overflow-x:auto; }
+  .toptabs button{
+    flex:1; padding:9px 8px; border:none; background:transparent; color:var(--muted); font-weight:700;
+    border-radius:10px; font-size:13px; cursor:pointer; white-space:nowrap;
+  }
+  .toptabs button.active{ background:var(--accent); color:#fff; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .grid4{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+
+  .list-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:13px 4px; border-bottom:1px solid rgba(160,90,230,0.12);
+  }
+  .list-item:last-child{ border-bottom:none; }
+  .list-left{ display:flex; align-items:center; gap:12px; }
+  .icon-badge{
+    width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:var(--panel2); font-size:17px; flex-shrink:0;
+  }
+  .chev{ color:var(--muted2); font-size:18px; }
+
+  .badge-vip{
+    font-size:10px; font-weight:800; color:#2a0845; background:linear-gradient(135deg,#f6e3ff,#c77dff);
+    padding:2px 7px; border-radius:6px; letter-spacing:0.5px; margin-left:6px;
+  }
+  .badge-clan{
+    font-size:10px; font-weight:800; color:#2a0845; background:linear-gradient(135deg,#8de3b0,#4fb87e);
+    padding:2px 7px; border-radius:6px; letter-spacing:0.5px;
+  }
+  .badge-hot{ font-size:9px; font-weight:800; color:#fff; background:linear-gradient(135deg,#ff9a5a,#e0533d); padding:2px 6px; border-radius:6px; }
+
+  .progress-track{ height:9px; border-radius:6px; background:rgba(160,90,230,0.15); overflow:hidden; margin:8px 0 4px; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--accent),var(--accent3)); border-radius:6px; transition:width .3s; }
+
+  /* ---------- avatar ---------- */
+  .avatar-stage{
+    height:220px; border-radius:20px; margin-bottom:10px; position:relative; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 20%, rgba(157,78,221,0.35), transparent 65%), var(--panel2);
+    border:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:center; transition:height .25s;
+  }
+  .avatar-stage.expanded{ height:320px; }
+  .stage-side-icons{ position:absolute; right:10px; top:10px; display:flex; flex-direction:column; gap:8px; }
+  .stage-side-icons .icon-btn{ width:32px; height:32px; background:rgba(15,3,26,0.6); }
+  .avatar-circle{
+    width:120px; height:120px; border-radius:26px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; font-size:44px; font-weight:800;
+    box-shadow:0 8px 30px rgba(157,78,221,0.4); border:3px solid rgba(224,170,255,0.5);
+    transition:transform .5s;
+  }
+  .avatar-circle.spin{ transform:rotateY(360deg); }
+  .avatar-circle img{ width:100%; height:100%; object-fit:cover; }
+  .avatar-mini{ width:52px; height:52px; border-radius:14px; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; }
+  .avatar-mini img{ width:100%; height:100%; object-fit:cover; }
+  .avatar-sm{ width:38px; height:38px; border-radius:11px; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; }
+  .avatar-sm img{ width:100%; height:100%; object-fit:cover; }
+
+  .avatar-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .segchip{ display:flex; background:var(--panel2); border:1px solid var(--card-border); border-radius:999px; padding:3px; }
+  .segchip button{ border:none; background:transparent; color:var(--muted); font-size:12.5px; font-weight:700; padding:6px 14px; border-radius:999px; cursor:pointer; }
+  .segchip button.active{ background:var(--accent); color:#fff; }
+  .cart-chip{ display:flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--card-border); border-radius:999px; padding:7px 12px; font-size:12.5px; font-weight:700; color:var(--muted); }
+
+  .shop-card{ border-radius:14px; overflow:hidden; background:var(--panel2); border:1px solid var(--card-border); position:relative; }
+  .shop-thumb{ height:82px; display:flex; align-items:center; justify-content:center; font-size:34px; position:relative; }
+  .shop-owned-tag{ position:absolute; top:6px; right:6px; background:rgba(141,227,176,0.85); color:#0a2416; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px; }
+  .shop-eq-tag{ position:absolute; top:6px; right:6px; background:var(--accent3); color:#2a0845; font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px; }
+  .shop-hot-tag{ position:absolute; top:6px; left:6px; }
+  .shop-info{ padding:8px 9px 10px; }
+  .shop-price{ display:flex; align-items:center; gap:4px; font-size:12px; font-weight:700; margin-top:4px; }
+  .shop-name{ font-size:12px; font-weight:600; color:var(--text); line-height:1.3; height:31px; overflow:hidden; }
+  .shop-btn{ width:100%; margin-top:7px; padding:6px; border-radius:8px; border:none; font-size:12px; font-weight:700; cursor:pointer; }
+
+  .skin-tile{ position:relative; border-radius:14px; overflow:hidden; background:var(--panel2); border:1px solid var(--card-border); aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+  .skin-tile img{ width:100%; height:100%; object-fit:cover; }
+  .skin-del{ position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:rgba(10,0,20,0.7); color:#fff; border:none; font-size:11px; }
+  .skin-eq{ position:absolute; bottom:0; left:0; right:0; background:var(--accent); color:#fff; font-size:10px; font-weight:800; text-align:center; padding:3px 0; }
+  .upload-tile{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:var(--muted); font-size:11px; font-weight:700; cursor:pointer; border:2px dashed var(--card-border); }
+
+  /* ---------- promo / quests (home) ---------- */
+  .promo-row{ display:flex; gap:10px; overflow-x:auto; margin-bottom:14px; padding-bottom:2px; }
+  .promo-card{ flex:0 0 148px; height:80px; border-radius:16px; padding:12px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; border:1px solid var(--card-border); }
+  .promo-card .pt{ font-size:12.5px; font-weight:800; }
+  .promo-card .ps{ font-size:10.5px; opacity:0.8; }
+  .quest-strip{ display:flex; gap:10px; overflow-x:auto; margin-bottom:18px; }
+  .quest-chip{ flex:0 0 auto; display:flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--card-border); padding:8px 13px; border-radius:999px; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; white-space:nowrap; }
+
+  /* ---------- chat ---------- */
+  .chat-row{ display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid rgba(160,90,230,0.12); cursor:pointer; }
+  .chat-row:last-child{ border-bottom:none; }
+  .chat-meta{ flex:1; min-width:0; }
+  .chat-name{ font-weight:700; font-size:14.5px; }
+  .chat-last{ font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .thread-wrap{ display:flex; flex-direction:column; height:100%; }
+  .thread-head{ display:flex; align-items:center; gap:10px; padding-bottom:12px; border-bottom:1px solid var(--card-border); margin-bottom:10px; }
+  .thread-msgs{ flex:1; display:flex; flex-direction:column; gap:8px; padding:6px 0 12px; }
+  .bubble{ max-width:75%; padding:9px 13px; border-radius:16px; font-size:14px; line-height:1.4; }
+  .bubble.me{ align-self:flex-end; background:linear-gradient(135deg,var(--accent),#7b2cbf); color:#fff; border-bottom-right-radius:4px; }
+  .bubble.them{ align-self:flex-start; background:var(--panel2); border:1px solid var(--card-border); border-bottom-left-radius:4px; }
+  .bubble-time{ font-size:10px; opacity:0.65; margin-top:3px; display:block; }
+  .thread-input{ display:flex; gap:8px; align-items:center; position:sticky; bottom:0; background:var(--bg); padding-top:8px; }
+  .thread-input input{ flex:1; background:var(--panel2); border:1px solid var(--card-border); border-radius:999px; padding:11px 16px; color:var(--text); font-size:14px; }
+  .thread-input input:focus{ outline:none; border-color:var(--accent); }
+  .send-btn{ width:42px; height:42px; border-radius:50%; background:var(--accent); border:none; color:#fff; font-size:16px; flex-shrink:0; }
+
+  input, textarea, select{ font-family:inherit; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:5px; font-weight:600; }
+  .field input[type=text], .field input[type=number]{
+    width:100%; background:var(--panel2); border:1px solid var(--card-border); border-radius:10px;
+    padding:10px 12px; color:var(--text); font-size:14px;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); }
+  .field input[type=range]{ width:100%; accent-color:var(--accent); }
+  .switch-row{ display:flex; align-items:center; justify-content:space-between; padding:6px 0; }
+  .switch{ position:relative; width:44px; height:25px; background:var(--panel2); border-radius:999px; border:1px solid var(--card-border); cursor:pointer; }
+  .switch.on{ background:var(--accent); }
+  .switch .knob{ position:absolute; top:2px; left:2px; width:19px; height:19px; border-radius:50%; background:#fff; transition:.2s; }
+  .switch.on .knob{ left:21px; }
+  .crest-opt{ font-size:20px !important; padding:10px !important; }
+  .crest-opt.picked{ border-color:var(--accent3) !important; background:rgba(157,78,221,0.25) !important; }
+
+  /* ---------- modal ---------- */
+  .overlay{ position:fixed; inset:0; background:rgba(6,0,14,0.72); backdrop-filter:blur(3px); z-index:60; display:flex; align-items:flex-end; justify-content:center; }
+  .modal{
+    width:100%; max-width:480px; background:var(--panel); border:1px solid var(--card-border);
+    border-radius:22px 22px 0 0; padding:20px; max-height:85vh; overflow-y:auto;
+    animation:slideUp .22s ease;
+  }
+  @keyframes slideUp{ from{ transform:translateY(30px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .modal-head h3{ margin:0; font-size:17px; }
+  .modal-close{ background:var(--panel2); border:none; color:var(--text); width:30px; height:30px; border-radius:50%; font-size:15px; }
+  .toast{
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%); z-index:70;
+    background:var(--panel2); border:1px solid var(--accent3); color:var(--text);
+    padding:10px 18px; border-radius:999px; font-size:13px; font-weight:600;
+    box-shadow:0 6px 24px rgba(0,0,0,0.4); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+    max-width:85%; text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  /* ---------- bottom nav ---------- */
+  #tabbar{
+    position:absolute; bottom:0; left:0; right:0; height:66px;
+    background:rgba(15,3,26,0.92); backdrop-filter:blur(10px);
+    border-top:1px solid var(--card-border);
+    display:flex; align-items:stretch; z-index:30;
+  }
+  .tab-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    background:none; border:none; color:var(--muted2); font-size:10.5px; font-weight:700; cursor:pointer;
+  }
+  .tab-btn svg{ width:23px; height:23px; }
+  .tab-btn.active{ color:var(--accent3); }
+  .tab-btn.active svg{ filter:drop-shadow(0 0 6px rgba(199,125,255,0.7)); }
+
+  .empty-state{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; color:var(--muted); text-align:center; gap:10px; }
+  .empty-emoji{ font-size:44px; }
+
+  .hero-banner{
+    border-radius:20px; padding:20px; margin-bottom:14px; position:relative; overflow:hidden;
+    background:linear-gradient(120deg, #3b0764, #7b2cbf 60%, #c77dff 130%);
+  }
+  .hero-banner h2{ margin:0 0 4px; font-size:21px; }
+  .hero-banner p{ margin:0; font-size:13px; color:rgba(255,255,255,0.85); }
+
+  .clan-banner{ border-radius:20px; padding:22px; margin-bottom:14px; text-align:center;
+    background:radial-gradient(ellipse at 50% 0%, rgba(157,78,221,0.4), transparent 70%), var(--panel2);
+    border:1px solid var(--card-border); }
+  .clan-crest{ font-size:46px; margin-bottom:6px; }
+
+  /* ---------- account preview ---------- */
+  .preview-bg{
+    height:130px; position:relative;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(224,170,255,0.35), transparent 55%),
+      linear-gradient(135deg,#7b2cbf,#3b0764 60%,#c77dff 130%);
+  }
+  .preview-dress{
+    position:absolute; bottom:-42px; left:50%; transform:translateX(-50%);
+    width:100px; height:100px; border-radius:24px; overflow:hidden;
+    border:3px solid rgba(224,170,255,0.6); box-shadow:0 10px 26px rgba(0,0,0,0.45);
+    font-size:40px; display:flex; align-items:center; justify-content:center; z-index:2;
+  }
+  .preview-body{ padding:56px 22px 22px; text-align:center; }
+  .preview-pic-wrap{ position:relative; width:52px; margin:0 auto 10px; }
+  .preview-pic{
+    width:52px; height:52px; border-radius:15px; overflow:hidden;
+    border:2px solid rgba(224,170,255,0.55); display:flex; align-items:center; justify-content:center; font-size:22px;
+  }
+  .preview-pic-cam{
+    position:absolute; bottom:-4px; right:-6px; width:22px; height:22px; border-radius:50%;
+    background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:11px;
+    border:2px solid var(--panel); cursor:pointer;
+  }
+  .preview-name{ font-weight:800; font-size:18px; }
+  .preview-id{ color:var(--muted); font-size:12.5px; margin-top:3px; }
+  .preview-intro{
+    margin-top:16px; padding:13px; background:var(--panel2); border:1px solid var(--card-border);
+    border-radius:12px; font-size:13px; color:var(--text); line-height:1.5; text-align:left;
+  }
+
+  /* ---------- login / register ---------- */
+  .link-register{
+    color:var(--accent3); text-decoration:underline; text-decoration-color:var(--accent);
+    text-underline-offset:4px; cursor:pointer; font-weight:700; font-size:13.5px;
+  }
+  #authGate{
+    position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(157,78,221,0.25), transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(90,24,154,0.3), transparent 55%),
+      var(--bg);
+    padding:24px;
+  }
+  #authGate .authCard{ width:100%; max-width:400px; }
+  #authGate h1{ font-size:30px; text-align:center; margin-bottom:4px; background:linear-gradient(180deg,#f3e6ff,#c77dff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #authGate .sub{ text-align:center; color:var(--muted); font-size:13px; margin-bottom:26px; letter-spacing:0.5px; }
+  #app-shell{ display:none; }
+  #app-shell.visible{ display:flex; }
+</style>
+</head>
+<body>
+<div id="authGate">
+  <div class="authCard" id="authCardInner"></div>
+</div>
+
+<div id="app-shell">
+  <div id="screen"></div>
+  <div id="tabbar"></div>
+</div>
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ICONS
+============================================================ */
+const ICONS = {
+  home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>`,
+  clan: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4"/><path d="M4 4h13l-2.5 4L17 12H4"/></svg>`,
+  shirt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4 4 7l2 3 2-1v11h8V9l2 1 2-3-4-3-2 2-2-2Z"/></svg>`,
+  chat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>`,
+  user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,
+  bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
+  back: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
+};
+
+/* ============================================================
+   DEFAULT BLOCKY AVATAR — shown for every player until they
+   upload their own skin or profile picture. Same purple/black
+   backdrop everywhere it appears, so it's consistent app-wide.
+============================================================ */
+const DEFAULT_AVATAR_SVG = `<svg viewBox="0 0 100 140" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="100" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7b2cbf"/>
+      <stop offset="100%" stop-color="#2a0845"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="35%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#e0aaff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#e0aaff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="100" height="140" fill="url(#bgGrad)"/>
+  <rect x="0" y="0" width="100" height="140" fill="url(#bgGlow)"/>
+  <rect x="8" y="52" width="14" height="22" rx="3" fill="#7C1FD6"/>
+  <rect x="78" y="52" width="14" height="22" rx="3" fill="#7C1FD6"/>
+  <rect x="8" y="74" width="14" height="26" rx="2" fill="#f0c48a"/>
+  <rect x="78" y="74" width="14" height="26" rx="2" fill="#f0c48a"/>
+  <rect x="22" y="96" width="26" height="32" rx="2" fill="#141414"/>
+  <rect x="52" y="96" width="26" height="32" rx="2" fill="#141414"/>
+  <rect x="20" y="126" width="30" height="10" rx="2" fill="#2b2b2b"/>
+  <rect x="50" y="126" width="30" height="10" rx="2" fill="#2b2b2b"/>
+  <rect x="20" y="52" width="60" height="46" rx="3" fill="#7C1FD6"/>
+  <text x="50" y="83" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="22" fill="#ffffff" text-anchor="middle">A</text>
+  <rect x="42" y="46" width="16" height="6" fill="#f0c48a"/>
+  <rect x="28" y="10" width="44" height="38" rx="3" fill="#f0c48a"/>
+  <rect x="36" y="26" width="10" height="3" rx="1" fill="#2a1a10"/>
+  <rect x="54" y="26" width="10" height="3" rx="1" fill="#2a1a10"/>
+  <rect x="37" y="30" width="6" height="6" fill="#26140a"/>
+  <rect x="57" y="30" width="6" height="6" fill="#26140a"/>
+  <rect x="42" y="40" width="16" height="2" rx="1" fill="#6b3a24"/>
+  <rect x="24" y="14" width="8" height="20" rx="2" fill="#181818"/>
+  <rect x="68" y="14" width="8" height="20" rx="2" fill="#181818"/>
+  <rect x="26" y="6" width="48" height="14" rx="3" fill="#181818"/>
+  <polygon points="70,8 83,3 79,19 66,17" fill="#181818"/>
+  <rect x="34" y="2" width="10" height="10" rx="2" fill="#181818" transform="rotate(-15 39 7)"/>
+  <rect x="52" y="1" width="10" height="10" rx="2" fill="#181818" transform="rotate(12 57 6)"/>
+</svg>`;
+
+const BUILTIN_SKINS = [
+  {id:'builtin-1', name:'Default Avatar', custom:false},
+  {id:'builtin-2', name:'Frost Guardian', color:'#5b2c6f', custom:false, emoji:'🥶'},
+  {id:'builtin-3', name:'Neon Ranger', color:'#c77dff', custom:false, emoji:'😎'},
+];
+const CREST_OPTIONS = ['🚩','👑','⚔️','🔮','🌙','🦇','💜','⭐'];
+
+/* ============================================================
+   API LAYER
+============================================================ */
+const API = ''; // same-origin
+let activeToken = localStorage.getItem('bgActiveToken') || null;
+
+function getSavedSessions(){
+  try{ return JSON.parse(localStorage.getItem('bgSessions')||'[]'); }catch(e){ return []; }
+}
+function setSavedSessions(list){ localStorage.setItem('bgSessions', JSON.stringify(list)); }
+function rememberSession(token, user){
+  const list = getSavedSessions().filter(s=>s.id!==user.id);
+  list.unshift({ token, id:user.id, username:user.username });
+  setSavedSessions(list);
+}
+function forgetSession(id){ setSavedSessions(getSavedSessions().filter(s=>s.id!==id)); }
+function setActiveToken(token){
+  activeToken = token;
+  if(token) localStorage.setItem('bgActiveToken', token);
+  else localStorage.removeItem('bgActiveToken');
+}
+
+async function api(method, path, body){
+  try{
+    const res = await fetch(API + path, {
+      method,
+      headers: Object.assign({ 'Content-Type':'application/json' }, activeToken ? { 'Authorization':'Bearer '+activeToken } : {}),
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    });
+    let data = {};
+    try{ data = await res.json(); }catch(e){ /* no body */ }
+    if(!res.ok){ return { ok:false, status:res.status, error: data.error || ('Request failed ('+res.status+')') }; }
+    return { ok:true, status:res.status, data };
+  }catch(e){
+    return { ok:false, status:0, error:'Could not reach the server. Check your connection.' };
+  }
+}
+
+/* ============================================================
+   STATE
+============================================================ */
+let state = null; // { profile, clan, friendsList }
+let ui = { tab:'home', avatarSub:'recommended', chatSub:'chat', activeThread:null, nightmode:false, clanSub:'overview', selectedCrest:'🚩', authView:'login', regUsername:'' };
+let modalPayload = null;
+let chatPollTimer = null;
+let SHOP_ITEMS = [];
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>t.classList.remove('show'), 1900);
+}
+
+/* ============================================================
+   BOOT / AUTH FLOW
+============================================================ */
+async function boot(){
+  const shopRes = await api('GET','/api/shop');
+  if(shopRes.ok) SHOP_ITEMS = shopRes.data.items;
+
+  if(activeToken){
+    const ok = await refreshState();
+    if(ok){ showApp(); return; }
+  }
+  showAuthGate('login');
+}
+
+async function refreshState(){
+  const meRes = await api('GET','/api/me');
+  if(!meRes.ok){ setActiveToken(null); return false; }
+  state = { profile: meRes.data.user, clan:null, friendsList:[] };
+  const [clanRes, friendsRes] = await Promise.all([ api('GET','/api/clan'), api('GET','/api/friends') ]);
+  if(clanRes.ok) state.clan = clanRes.data.clan;
+  if(friendsRes.ok) state.friendsList = friendsRes.data.friends;
+  return true;
+}
+
+function showApp(){
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('app-shell').classList.add('visible');
+  render();
+}
+function showAuthGate(view, payload){
+  document.getElementById('app-shell').classList.remove('visible');
+  document.getElementById('authGate').style.display = 'flex';
+  ui.authView = view;
+  modalPayload = payload || null;
+  renderAuthGate();
+}
+
+function renderAuthGate(){
+  const root = document.getElementById('authCardInner');
+  if(ui.authView === 'login'){
+    root.innerHTML = `
+      <h1>Bedrock Go</h1>
+      <div class="sub">SIGN IN TO PLAY WITH EVERYONE</div>
+      <div class="card">
+        <div class="field"><label>ID / Username</label><input type="text" id="gateLoginId" placeholder="Enter your ID or Username"></div>
+        <div class="field"><label>Password</label><input type="password" id="gateLoginPassword" placeholder="Enter your password"></div>
+        <button class="btn btn-primary btn-block" id="gateLoginBtn">Log In</button>
+        <div style="text-align:center; margin-top:18px;">
+          <span class="link-register" id="gateOpenRegisterBtn">Register account</span>
+        </div>
+      </div>`;
+    document.getElementById('gateLoginBtn').onclick = doGateLogin;
+    document.getElementById('gateOpenRegisterBtn').onclick = ()=> showAuthGate('registerStep1');
+  } else if(ui.authView === 'registerStep1'){
+    root.innerHTML = `
+      <h1>Bedrock Go</h1>
+      <div class="sub">STEP 1 OF 2 — CHOOSE A USERNAME</div>
+      <div class="card">
+        <div class="field"><label>Username</label><input type="text" id="gateRegUsername" placeholder="e.g. Nightbloom" value="${ui.regUsername||''}"></div>
+        <button class="btn btn-primary btn-block" id="gateRegNextBtn">Next</button>
+        <div style="text-align:center; margin-top:18px;">
+          <span class="link-register" id="gateBackToLoginBtn">Back to login</span>
+        </div>
+      </div>`;
+    document.getElementById('gateRegNextBtn').onclick = ()=>{
+      const uname = document.getElementById('gateRegUsername').value.trim();
+      if(!uname || uname.length<3){ showToast('Username must be at least 3 characters'); return; }
+      ui.regUsername = uname;
+      showAuthGate('registerStep2');
+    };
+    document.getElementById('gateBackToLoginBtn').onclick = ()=> showAuthGate('login');
+  } else if(ui.authView === 'registerStep2'){
+    root.innerHTML = `
+      <h1>Bedrock Go</h1>
+      <div class="sub">STEP 2 OF 2 — SET A PASSWORD</div>
+      <div class="card">
+        <p class="muted">Creating <b style="color:var(--text);">${ui.regUsername}</b> — your account ID will be randomly generated.</p>
+        <div class="field"><label>Password</label><input type="password" id="gateRegPassword" placeholder="Create a password"></div>
+        <div class="field"><label>Confirm Password</label><input type="password" id="gateRegPasswordConfirm" placeholder="Re-enter password"></div>
+        <button class="btn btn-primary btn-block" id="gateRegCreateBtn">Create Account</button>
+      </div>`;
+    document.getElementById('gateRegCreateBtn').onclick = doGateRegister;
+  }
+}
+
+async function doGateLogin(){
+  const idOrUsername = document.getElementById('gateLoginId').value.trim();
+  const password = document.getElementById('gateLoginPassword').value;
+  if(!idOrUsername){ showToast('Enter your ID or Username'); return; }
+  const res = await api('POST','/api/login', { idOrUsername, password });
+  if(!res.ok){ showToast(res.error); return; }
+  setActiveToken(res.data.token);
+  rememberSession(res.data.token, res.data.user);
+  const ok = await refreshState();
+  if(ok){ showToast(`Welcome back, ${state.profile.username}!`); showApp(); }
+}
+async function doGateRegister(){
+  const pw = document.getElementById('gateRegPassword').value;
+  const pw2 = document.getElementById('gateRegPasswordConfirm').value;
+  if(!pw || pw.length<4){ showToast('Password must be at least 4 characters'); return; }
+  if(pw !== pw2){ showToast('Passwords do not match'); return; }
+  const res = await api('POST','/api/register', { username: ui.regUsername, password: pw });
+  if(!res.ok){
+    showToast(res.error);
+    if(res.status===409) showAuthGate('registerStep1'); // username taken — let them pick another
+    return;
+  }
+  setActiveToken(res.data.token);
+  rememberSession(res.data.token, res.data.user);
+  const ok = await refreshState();
+  if(ok){ showToast(`Account "${state.profile.username}" created — ID ${state.profile.id}`); showApp(); }
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function cubesDisplay(){ return state.profile.infiniteCubes ? '∞' : state.profile.acubes; }
+function canAfford(cost, currency){
+  if(currency==='acubes') return state.profile.infiniteCubes || state.profile.acubes >= cost;
+  return state.profile.tickets >= cost;
+}
+function skinById(id){ return state.profile.skins.find(s=>s.id===id); }
+function equippedSkin(){ return skinById(state.profile.equippedSkinId) || state.profile.skins[0]; }
+
+function avatarInner(skin){
+  if(skin && skin.dataUrl) return `<img src="${skin.dataUrl}" alt="skin">`;
+  if(!skin || skin.id === 'builtin-1') return DEFAULT_AVATAR_SVG;
+  const color = skin.color || '#9d4edd';
+  const emoji = skin.emoji || '🙂';
+  return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,${color},#2a0845);">${emoji}</div>`;
+}
+function profilePicInner(){
+  if(state.profile.profilePic) return `<img src="${state.profile.profilePic}" alt="profile">`;
+  return avatarInner(equippedSkin());
+}
+function miniAvatarInner(userMini){
+  if(!userMini) return DEFAULT_AVATAR_SVG;
+  if(userMini.profilePic) return `<img src="${userMini.profilePic}" alt="profile">`;
+  const skin = (userMini.skins||[]).find(s=>s.id===userMini.equippedSkinId);
+  return avatarInner(skin);
+}
+
+/* ============================================================
+   RENDER ROOT
+============================================================ */
+function render(){
+  renderTabbar();
+  const screen = document.getElementById('screen');
+  screen.scrollTop = 0;
+  if(ui.tab==='home') screen.innerHTML = viewHome();
+  else if(ui.tab==='avatar') screen.innerHTML = viewAvatar();
+  else if(ui.tab==='clan') screen.innerHTML = viewClan();
+  else if(ui.tab==='chat') screen.innerHTML = viewChat();
+  else if(ui.tab==='profile') screen.innerHTML = viewProfile();
+  bindScreenEvents();
+}
+function renderTabbar(){
+  const tabs = [
+    {id:'home', label:'Home', icon:ICONS.home},
+    {id:'clan', label:'Clan', icon:ICONS.clan},
+    {id:'avatar', label:'Avatar', icon:ICONS.shirt},
+    {id:'chat', label:'Chat', icon:ICONS.chat},
+    {id:'profile', label:'Profile', icon:ICONS.user},
+  ];
+  document.getElementById('tabbar').innerHTML = tabs.map(t=>`
+    <button class="tab-btn ${ui.tab===t.id?'active':''}" data-tab="${t.id}">${t.icon}<span>${t.label}</span></button>
+  `).join('');
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.onclick = ()=>{ stopChatPolling(); ui.tab = b.dataset.tab; ui.activeThread=null; render(); };
+  });
+}
+function currencyBar(){
+  return `
+  <div class="curpills">
+    <div class="pill"><span class="tag-ico"></span> ${state.profile.tickets} <button class="plus" data-open="topup">+</button></div>
+    <div class="pill"><span class="cube-ico"></span> ${cubesDisplay()} <button class="plus" data-open="topup">+</button></div>
+  </div>`;
+}
+
+/* ============================================================
+   HOME
+============================================================ */
+function viewHome(){
+  return `
+  <div class="topbar">
+    <div class="avatar-mini" data-open="acctPreview" style="cursor:pointer;">${profilePicInner()}</div>
+    ${currencyBar()}
+    <div style="display:flex; gap:8px;">
+      <button class="icon-btn" data-open="search">${ICONS.search}</button>
+      <button class="icon-btn" data-open="inbox">${ICONS.bell}</button>
+    </div>
+  </div>
+  <div class="hero-banner">
+    <h2>Welcome back, ${state.profile.username}</h2>
+    <p>VIP ${state.profile.vip} · ${state.clan ? 'Clan: '+state.clan.name+' (Lv.'+state.clan.level+')' : 'No clan yet'}</p>
+  </div>
+  <div class="promo-row">
+    <div class="promo-card" style="background:linear-gradient(135deg,#5b2c6f,#2a0845);" id="claimDaily">
+      <div class="pt">🎁 Daily Gift</div><div class="ps">Claim +20 Tickets</div>
+    </div>
+    <div class="promo-card" style="background:linear-gradient(135deg,#3a1c63,#1c0a33);" data-open="battlepass">
+      <div class="pt">🎫 Season Pass</div><div class="ps">View rewards</div>
+    </div>
+    <div class="promo-card" style="background:linear-gradient(135deg,#7b2cbf,#c77dff);" data-open="vip">
+      <div class="pt">👑 Become VIP</div><div class="ps">Unlock perks</div>
+    </div>
+  </div>
+  <div class="quest-strip">
+    <div class="quest-chip" data-quest="1">🏆 World Event</div>
+    <div class="quest-chip" data-quest="1">🐉 Lord Quest</div>
+    <div class="quest-chip" data-quest="1">⚔️ War Quest</div>
+    <div class="quest-chip" data-quest="1">🏝️ Block Quest</div>
+    <div class="quest-chip" data-quest="1">⛩️ Pilgrimage</div>
+  </div>
+  <div class="section-title">Quick actions</div>
+  <div class="grid2">
+    <div class="card" style="margin-bottom:0; text-align:center; cursor:pointer;" data-nav="avatar">
+      <div style="font-size:26px;">🧢</div><div style="font-weight:700; font-size:13.5px; margin-top:4px;">Wardrobe</div>
+    </div>
+    <div class="card" style="margin-bottom:0; text-align:center; cursor:pointer;" data-nav="clan">
+      <div style="font-size:26px;">🚩</div><div style="font-weight:700; font-size:13.5px; margin-top:4px;">Clan Hub</div>
+    </div>
+    <div class="card" style="margin-bottom:0; text-align:center; cursor:pointer;" data-nav="chat">
+      <div style="font-size:26px;">💬</div><div style="font-weight:700; font-size:13.5px; margin-top:4px;">Chat</div>
+    </div>
+    <div class="card" style="margin-bottom:0; text-align:center; cursor:pointer;" data-open="admin">
+      <div style="font-size:26px;">${state.profile.isDev ? '🛠️' : '🔒'}</div><div style="font-weight:700; font-size:13.5px; margin-top:4px;">Admin Panel</div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   AVATAR / CLOTHES
+============================================================ */
+function viewAvatar(){
+  const skin = equippedSkin();
+  const sub = ui.avatarSub;
+  let body = '';
+  if(sub==='recommended' || sub==='clothes' || sub==='accessories' || sub==='character'){
+    const cat = sub==='recommended' ? null : sub;
+    const items = cat ? SHOP_ITEMS.filter(i=>i.cat===cat) : SHOP_ITEMS;
+    body = `<div class="grid3">` + items.map(it=>{
+      const owned = state.profile.wardrobe.owned.includes(it.id);
+      const equipped = state.profile.wardrobe.equipped[it.cat]===it.id;
+      let btnLabel = owned ? (equipped ? 'Equipped' : 'Equip') : `${it.price} 🏷`;
+      let action = owned ? (equipped ? 'unequip' : 'equip') : 'buy';
+      return `
+      <div class="shop-card">
+        <div class="shop-thumb" style="background:linear-gradient(160deg,${it.color},#150324);">
+          ${it.emoji}
+          ${it.hot && !owned ? '<span class="badge-hot shop-hot-tag">HOT</span>' : ''}
+          ${equipped ? '<span class="shop-eq-tag">EQUIPPED</span>' : (owned ? '<span class="shop-owned-tag">OWNED</span>' : '')}
+        </div>
+        <div class="shop-info">
+          <div class="shop-name">${it.name}</div>
+          <button class="shop-btn ${equipped?'btn-ghost':'btn-primary'}" style="${equipped?'':'color:#fff;'}" data-shop-action="${action}" data-shop-id="${it.id}">${btnLabel}</button>
+        </div>
+      </div>`;
+    }).join('') + `</div>`;
+  } else if(sub==='myskins'){
+    body = `<div class="grid3">
+      <label class="skin-tile upload-tile" for="skinUpload"><div style="font-size:22px;">＋</div><div>Upload Skin</div></label>
+      ${state.profile.skins.map(s=>`
+        <div class="skin-tile" data-skin-id="${s.id}">
+          ${s.dataUrl ? `<img src="${s.dataUrl}">` : (s.id==='builtin-1' ? DEFAULT_AVATAR_SVG : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(160deg,${s.color},#150324);">${s.emoji}</div>`)}
+          ${s.custom ? `<button class="skin-del" data-del-skin="${s.id}">✕</button>` : ''}
+          ${state.profile.equippedSkinId===s.id ? '<div class="skin-eq">EQUIPPED</div>' : ''}
+        </div>
+      `).join('')}
+    </div>
+    <input type="file" id="skinUpload" accept="image/*" style="display:none;">
+    <p class="muted" style="margin-top:12px;">Tap a skin to equip it. Uploaded skins are saved to your real account and follow you anywhere you log in.</p>`;
+  }
+  return `
+  <div class="topbar"><div style="font-weight:800; font-size:19px;">Avatar</div>${currencyBar()}</div>
+  <div class="avatar-stage" id="avatarStage">
+    <div class="avatar-circle" id="avatarCircle">${avatarInner(skin)}</div>
+  </div>
+  <div class="avatar-toolbar">
+    <div class="segchip">
+      <button data-avatar-jump="recommended" class="${sub!=='myskins'?'active':''}">Shop</button>
+      <button data-avatar-jump="myskins" class="${sub==='myskins'?'active':''}">My</button>
+    </div>
+    <label class="btn btn-primary" style="padding:8px 14px; font-size:12.5px;" for="skinUploadTop">＋ Upload Skin</label>
+    <div class="cart-chip">${ICONS.search==='' ? '' : ''}🛒 ${state.profile.wardrobe.owned.length}</div>
+  </div>
+  <input type="file" id="skinUploadTop" accept="image/*" style="display:none;">
+  ${sub!=='myskins' ? `
+  <div class="toptabs">
+    <button data-sub="recommended" class="${sub==='recommended'?'active':''}">Recommended</button>
+    <button data-sub="clothes" class="${sub==='clothes'?'active':''}">Clothes</button>
+    <button data-sub="accessories" class="${sub==='accessories'?'active':''}">Accessories</button>
+    <button data-sub="character" class="${sub==='character'?'active':''}">Character</button>
+  </div>` : ''}
+  ${body}`;
+}
+
+/* ============================================================
+   CLAN
+============================================================ */
+function viewClan(){
+  if(!state.clan){
+    return `
+    <div class="topbar"><div style="font-weight:800; font-size:19px;">Clan</div>${currencyBar()}</div>
+    <div class="empty-state">
+      <div class="empty-emoji">🚩</div>
+      <div style="font-weight:700; font-size:16px; color:var(--text);">You haven't joined a clan yet</div>
+      <p class="muted">Found your very first clan, or join one other real players have already started.</p>
+      <div class="btn-row" style="width:100%; max-width:300px;">
+        <button class="btn btn-primary btn-block" id="createClanBtn">Create My First Clan</button>
+        <button class="btn btn-ghost btn-block" id="browseClanBtn">Browse Clans</button>
+      </div>
+    </div>`;
+  }
+  const pct = Math.min(100, Math.round((state.clan.exp/state.clan.expToNext)*100));
+  return `
+  <div class="topbar"><div style="font-weight:800; font-size:19px;">Clan</div>${currencyBar()}</div>
+  <div class="clan-banner">
+    <div class="clan-crest">${state.clan.crest}</div>
+    <div style="font-weight:800; font-size:19px;">${state.clan.name} <span class="badge-clan">LV ${state.clan.level}</span></div>
+    <div class="muted">${state.clan.members.length} members</div>
+    ${state.clan.level < 9 ? `
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="muted">${state.clan.exp} / ${state.clan.expToNext} EXP to Level ${state.clan.level+1}</div>
+    ` : `<div class="muted" style="margin-top:8px;">🏆 Max level reached!</div>`}
+  </div>
+  <div class="toptabs">
+    <button data-clansub="overview" class="${ui.clanSub==='overview'?'active':''}">Overview</button>
+    <button data-clansub="members" class="${ui.clanSub==='members'?'active':''}">Members</button>
+  </div>
+  ${ui.clanSub==='overview' ? `
+    <div class="card">
+      <h3>Grow the clan</h3>
+      <p class="muted">Contribute A-Cubes to earn shared clan EXP — every real member's contribution counts.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" id="contributeBtn" ${state.clan.level>=9?'disabled':''}>Contribute 10 📦</button>
+        <button class="btn btn-danger" id="leaveClanBtn">Leave</button>
+      </div>
+    </div>
+  ` : `
+    <div class="card">
+      ${state.clan.members.map(m=>`
+        <div class="list-item">
+          <div class="list-left">
+            <div class="avatar-sm">${miniAvatarInner(m)}</div>
+            <div><b>${m.username}</b> ${m.id===state.profile.id?'<span class="badge-vip">YOU</span>':''} <span class="badge-vip">VIP ${m.vip}</span></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `}`;
+}
+
+/* ============================================================
+   CHAT
+============================================================ */
+function viewChat(){
+  if(ui.activeThread){ return viewThread(ui.activeThread); }
+  const sub = ui.chatSub;
+  let body='';
+  if(sub==='chat'){
+    const rows = [
+      {id:'announce', name:'Wonderful Activities', icon:'🚩'},
+      ...state.friendsList.map(f=>({id:f.id, name:f.username, icon:null, mini:f}))
+    ];
+    body = `<div class="card" style="padding:0 12px;">
+      ${rows.map(r=>`
+        <div class="chat-row" data-open-thread="${r.id}">
+          <div class="icon-badge" style="font-size:19px; overflow:hidden;">${r.icon || miniAvatarInner(r.mini)}</div>
+          <div class="chat-meta"><div class="chat-name">${r.name}</div><div class="chat-last">Tap to open chat</div></div>
+        </div>
+      `).join('')}
+    </div>`;
+  } else if(sub==='friends'){
+    body = `
+      <button class="btn btn-primary btn-block" id="addFriendBtn" style="margin-bottom:12px;">+ Add Friend</button>
+      <div class="card">
+        ${state.friendsList.map(f=>`
+          <div class="list-item">
+            <div class="list-left">
+              <div class="icon-badge" style="overflow:hidden;">${miniAvatarInner(f)}</div>
+              <div><b>${f.username}</b><br><span class="muted">ID ${f.id}</span></div>
+            </div>
+            <div class="btn-row" style="margin:0;">
+              <button class="btn btn-ghost" data-open-thread="${f.id}" style="padding:6px 10px; font-size:12px;">Message</button>
+              <button class="btn btn-danger" data-remove-friend="${f.id}" style="padding:6px 10px; font-size:12px;">Remove</button>
+            </div>
+          </div>
+        `).join('') || '<p class="muted">No friends yet — add a real player by their ID or username.</p>'}
+      </div>`;
+  } else if(sub==='clangroup'){
+    if(!state.clan){ body = `<div class="empty-state"><div class="empty-emoji">🚩</div><p class="muted">Join a clan first to unlock the clan chat.</p></div>`; }
+    else { ui.activeThread = 'clan'; return viewThread('clan'); }
+  }
+  return `
+  <div class="topbar"><div style="font-weight:800; font-size:19px;">Chat</div>${currencyBar()}</div>
+  <div class="toptabs">
+    <button data-chatsub="chat" class="${sub==='chat'?'active':''}">Chat</button>
+    <button data-chatsub="friends" class="${sub==='friends'?'active':''}">Friends</button>
+    <button data-chatsub="clangroup" class="${sub==='clangroup'?'active':''}">Clan</button>
+  </div>
+  ${body}`;
+}
+function viewThread(id){
+  const isAnnounce = id==='announce';
+  const isClan = id==='clan';
+  const friend = state.friendsList.find(f=>f.id===id);
+  const title = isAnnounce ? 'Wonderful Activities' : isClan ? (state.clan.name+' Clan Chat') : (friend ? friend.username : 'Chat');
+  return `
+  <div class="thread-wrap">
+    <div class="thread-head">
+      <button class="btn btn-ghost" id="backToChat" style="padding:7px 10px;">${ICONS.back}</button>
+      <div class="icon-badge" style="overflow:hidden;">${isAnnounce?'🚩':isClan?'👑':miniAvatarInner(friend)}</div>
+      <div style="font-weight:700;">${title}</div>
+    </div>
+    <div class="thread-msgs" id="threadMsgs"><p class="muted" style="text-align:center; margin-top:30px;">Loading…</p></div>
+    ${!isAnnounce ? `
+    <div class="thread-input">
+      <input type="text" id="threadInput" placeholder="Message..." autocomplete="off">
+      <button class="send-btn" id="threadSend">➤</button>
+    </div>` : ''}
+  </div>`;
+}
+function renderThreadMessages(messages){
+  const el = document.getElementById('threadMsgs');
+  if(!el) return;
+  el.innerHTML = messages.length ? messages.map(m=>`
+    <div class="bubble ${m.from===state.profile.id?'me':'them'}">${escapeHtml(m.text)}<span class="bubble-time">${new Date(m.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div>
+  `).join('') : '<p class="muted" style="text-align:center; margin-top:30px;">No chats info</p>';
+  el.scrollTop = el.scrollHeight;
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function openThread(id){
+  stopChatPolling();
+  ui.activeThread = id;
+  render();
+  await pollThread();
+  chatPollTimer = setInterval(pollThread, 3000);
+}
+function stopChatPolling(){ if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer=null; } }
+async function pollThread(){
+  if(!ui.activeThread) return;
+  const res = await api('GET', `/api/chat/${ui.activeThread}`);
+  if(res.ok) renderThreadMessages(res.data.messages);
+}
+
+/* ============================================================
+   PROFILE
+============================================================ */
+function viewProfile(){
+  return `
+  <div class="topbar">
+    <div style="font-weight:800; font-size:19px;">Profile</div>
+    <button class="btn btn-ghost" data-open="editProfile" style="padding:8px;">${ICONS.edit}</button>
+  </div>
+  <div class="card" style="display:flex; gap:14px; align-items:center;">
+    <div class="avatar-mini" data-open="acctPreview" style="width:64px;height:64px; cursor:pointer; overflow:hidden;">${profilePicInner()}</div>
+    <div>
+      <div style="font-weight:800; font-size:18px;">${state.profile.username} <span class="badge-vip">VIP${state.profile.vip}</span></div>
+      <div class="muted">ID: ${state.profile.id}</div>
+    </div>
+  </div>
+  <div class="card">${currencyBar()}</div>
+  <div class="card">
+    <p style="margin:0 0 8px; font-size:14px;">Your account is real and saved on the server — you can log in from any device with your username and password.</p>
+    <div style="text-align:right; color:var(--accent3); font-weight:700; font-size:13px; cursor:pointer;" data-open="security">Go to settings →</div>
+  </div>
+  <div class="grid4" style="text-align:center; margin-bottom:16px;">
+    <div data-open="topup"><div style="font-size:22px;">💳</div><div class="muted" style="font-size:11px;">Monthly card</div></div>
+    <div data-open="vip"><div style="font-size:22px;">👑</div><div class="muted" style="font-size:11px;">VIP</div></div>
+    <div data-open="topup"><div style="font-size:22px;">📦</div><div class="muted" style="font-size:11px;">Top Up</div></div>
+    <div data-open="redeem"><div style="font-size:22px;">💎</div><div class="muted" style="font-size:11px;">Subscribe</div></div>
+  </div>
+  <div class="card" style="padding:4px 12px;">
+    ${profileMenuRow('🚩','Event Center','eventcenter')}
+    ${profileMenuRow('🎒','Backpack','myskins')}
+    ${profileMenuRow('🌙','Night mode','nightmode')}
+    ${profileMenuRow('📹','Video','video')}
+    ${profileMenuRow('📥','Inbox','inbox')}
+    ${profileMenuRow('🎵','Official Social Media','social')}
+    ${profileMenuRow('🎟️','Redeem Code','redeem')}
+    ${profileMenuRow('⚙️','Setting','setting')}
+    ${profileMenuRow('❓','Help','help')}
+    ${profileMenuRow('🛡️','Security','security')}
+    ${profileMenuRow(state.profile.isDev?'🛠️':'🔒','Admin Panel','admin')}
+  </div>`;
+}
+function profileMenuRow(emoji,label,key){
+  return `<div class="list-item" data-open="${key}" style="cursor:pointer;">
+    <div class="list-left"><div class="icon-badge">${emoji}</div><div>${label}</div></div>
+    <div class="chev">›</div>
+  </div>`;
+}
+
+/* ============================================================
+   MODALS
+============================================================ */
+async function openModal(key, payload){
+  modalPayload = payload || null;
+  const root = document.getElementById('modalRoot');
+  let html='';
+  if(key==='topup') html = modalTopup();
+  else if(key==='vip') html = modalVip();
+  else if(key==='redeem') html = modalRedeem();
+  else if(key==='admin'){
+    if(state.profile.isDev){
+      const res = await api('GET','/api/admin/status');
+      if(res.ok) state.profile._devWhitelist = res.data.devWhitelist;
+      html = modalAdmin();
+    } else html = modalAdminGate();
+  }
+  else if(key==='editProfile') html = modalEditProfile();
+  else if(key==='accounts') html = modalAccounts();
+  else if(key==='createClan') html = modalCreateClan();
+  else if(key==='browseClans') html = modalBrowseClans();
+  else if(key==='addFriend') html = modalAddFriend();
+  else if(key==='confirm') html = modalConfirm(payload);
+  else if(key==='acctPreview') html = modalAcctPreview();
+  else if(key==='myskins'){ ui.tab='avatar'; ui.avatarSub='myskins'; render(); return; }
+  else if(['eventcenter','video','social','inbox','help','security','setting','battlepass','search'].includes(key)) html = modalStatic(key);
+  else return;
+  root.innerHTML = `<div class="overlay" id="overlayEl">${html}</div>`;
+  document.getElementById('overlayEl').addEventListener('click', (e)=>{ if(e.target.id==='overlayEl') closeModal(); });
+  bindModalEvents(key);
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; modalPayload=null; }
+function modalWrap(title, inner){
+  return `<div class="modal"><div class="modal-head"><h3>${title}</h3><button class="modal-close" id="closeModalBtn">✕</button></div>${inner}</div>`;
+}
+
+function modalStatic(key){
+  const map = {
+    eventcenter:['Event Center','No active events right now. Check back soon for seasonal challenges and rewards.'],
+    video:['Video','Video features are coming in a future update.'],
+    social:['Official Social Media','Follow the official channels for news, codes, and community events.'],
+    inbox:['Inbox','You have no new system messages.'],
+    help:['Help & FAQ','For support, visit the Help Center or contact the community team.'],
+    security:['Security','Your password is stored securely (hashed, never in plain text) on the server.'],
+    setting:['Settings','Adjust app preferences below.'],
+    battlepass:['Season Pass','The current season pass has no purchasable tiers yet — check back soon.'],
+    search:['Search','Search is coming in a future update.'],
+  };
+  const [title, body] = map[key];
+  let extra='';
+  if(key==='setting'){
+    extra = `<div class="switch-row"><span>Night Mode</span><div class="switch ${ui.nightmode?'on':''}" id="nightToggle"><div class="knob"></div></div></div>
+    <div class="list-item" id="openAccountsBtn" style="cursor:pointer;">
+      <div class="list-left"><div class="icon-badge">🧑\u200d🤝\u200d🧑</div><div>Accounts</div></div>
+      <div class="chev">›</div>
+    </div>
+    <button class="btn btn-danger btn-block" id="logoutBtn" style="margin-top:14px;">Log Out</button>`;
+  }
+  return modalWrap(title, `<p class="muted">${body}</p>${extra}`);
+}
+
+function modalAcctPreview(){
+  const skin = equippedSkin();
+  return `<div class="modal" style="padding:0; overflow:hidden;">
+    <div class="preview-bg">
+      <button class="modal-close" id="closeModalBtn" style="position:absolute; top:14px; right:14px; z-index:3;">✕</button>
+      <div class="preview-dress">${avatarInner(skin)}</div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-pic-wrap">
+        <div class="preview-pic">${profilePicInner()}</div>
+        <label class="preview-pic-cam" for="profilePicUpload">📷</label>
+      </div>
+      <input type="file" id="profilePicUpload" accept="image/*" style="display:none;">
+      <div class="preview-name">${state.profile.username} <span class="badge-vip">VIP${state.profile.vip}</span> <button class="icon-btn" id="previewEditBtn" style="width:26px;height:26px;padding:0;vertical-align:middle;display:inline-flex;">${ICONS.edit}</button></div>
+      <div class="preview-id">ID: ${state.profile.id}</div>
+      <div class="preview-intro">${state.profile.intro ? state.profile.intro : 'No introduction yet.'}</div>
+    </div>
+  </div>`;
+}
+function modalAdminGate(){
+  return modalWrap('Access Denied', `
+    <p class="muted">This panel is restricted to authorized developer accounts. Not everyone can use it.</p>
+    <p class="muted">Your account ID is <b style="color:var(--text);">${state.profile.id}</b>. Share it with an existing developer so they can grant you access.</p>
+  `);
+}
+function modalAdmin(){
+  const wl = state.profile._devWhitelist || [];
+  return modalWrap('Admin Panel', `
+    <p class="muted">Developer controls for your account (ID <b style="color:var(--text);">${state.profile.id}</b>).</p>
+    <div class="field"><label>VIP Level: <b id="vipLabel">${state.profile.vip}</b></label>
+      <input type="range" id="adminVip" min="0" max="9" value="${state.profile.vip}"></div>
+    <div class="field"><label>Clan Level: <b id="clanLabel">${state.clan?state.clan.level:1}</b> ${state.clan?'':'(join a clan first)'}</label>
+      <input type="range" id="adminClan" min="1" max="9" value="${state.clan?state.clan.level:1}" ${state.clan?'':'disabled'}></div>
+    <div class="field"><label>Tickets</label><input type="number" id="adminTickets" value="${state.profile.tickets}"></div>
+    <div class="field"><label>A-Cubes</label><input type="number" id="adminCubes" value="${state.profile.acubes}"></div>
+    <div class="switch-row"><span>Infinite A-Cubes</span><div class="switch ${state.profile.infiniteCubes?'on':''}" id="infCubeToggle"><div class="knob"></div></div></div>
+    <button class="btn btn-primary btn-block" id="adminSave" style="margin-top:12px;">Apply Changes</button>
+    <div class="field" style="margin-top:18px;"><label>Developer Access — IDs allowed to use this panel</label></div>
+    <div class="card" id="devListCard" style="max-height:150px; overflow-y:auto;">${wl.map(id=>`
+      <div class="list-item"><div>${id}${id===state.profile.id?' <span class="badge-vip">YOU</span>':''}</div>
+      ${wl.length>1 ? `<button class="btn btn-danger" data-remove-dev="${id}" style="padding:5px 10px;font-size:11px;">Remove</button>` : ''}</div>
+    `).join('')}</div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <input type="text" id="grantDevId" placeholder="Grant access to ID" style="flex:1; background:var(--panel2); border:1px solid var(--card-border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:13px;">
+      <button class="btn btn-primary" id="grantDevBtn">Grant</button>
+    </div>
+  `);
+}
+function modalEditProfile(){
+  return modalWrap('Edit Profile', `
+    <div class="field"><label>Display Name</label><input type="text" id="editName" value="${state.profile.username}"></div>
+    <div class="field"><label>Introduction</label>
+      <textarea id="editIntro" rows="3" placeholder="Say something about yourself..." style="width:100%; background:var(--panel2); border:1px solid var(--card-border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; resize:vertical; font-family:inherit;">${state.profile.intro||''}</textarea>
+    </div>
+    <button class="btn btn-primary btn-block" id="editNameSave">Save</button>
+  `);
+}
+function modalTopup(){
+  return modalWrap('Top Up', `
+    <p class="muted">Simulated top-up — grants currency instantly for testing.</p>
+    <div class="grid2">
+      <button class="btn btn-primary" data-topup="tickets:100">+100 🏷 Tickets</button>
+      <button class="btn btn-primary" data-topup="tickets:500">+500 🏷 Tickets</button>
+      <button class="btn btn-primary" data-topup="acubes:50">+50 📦 A-Cubes</button>
+      <button class="btn btn-primary" data-topup="acubes:250">+250 📦 A-Cubes</button>
+    </div>`);
+}
+function modalVip(){
+  const perks = ['Basic name tag','Chat color unlock','+10% daily reward','Exclusive frame','Priority matchmaking','Custom clan tag','Extra skin slot','Golden name glow','Legend status ✦'];
+  return modalWrap('VIP Levels', `
+    <p class="muted">Current level: <b>VIP ${state.profile.vip}</b></p>
+    <div class="card" style="max-height:260px; overflow-y:auto;">
+      ${perks.map((p,i)=>`<div class="list-item"><div class="list-left"><span class="badge-vip">VIP${i+1}</span> ${p}</div>${state.profile.vip>=i+1?'<span style="color:var(--good);">✓</span>':''}</div>`).join('')}
+    </div>
+    <button class="btn btn-primary btn-block" id="vipUpgradeBtn" ${state.profile.vip>=9?'disabled':''}>Upgrade to VIP ${Math.min(9,state.profile.vip+1)} (200 📦)</button>`);
+}
+function modalRedeem(){
+  return modalWrap('Redeem Code', `
+    <div class="field"><label>Enter code</label><input type="text" id="redeemInput" placeholder="e.g. AMETHYST2026"></div>
+    <button class="btn btn-primary btn-block" id="redeemSubmit">Redeem</button>`);
+}
+function modalAccounts(){
+  const sessions = getSavedSessions();
+  return modalWrap('Accounts', `
+    <p class="muted">Real accounts you've logged into on this device — tap to switch, no password needed again.</p>
+    <div class="card" style="max-height:280px; overflow-y:auto; padding:6px 10px;">
+      ${sessions.map(s=>`
+        <div class="list-item" data-row-switch="${s.id}" style="${s.id!==state.profile.id?'cursor:pointer;':''}">
+          <div class="list-left">
+            <div class="icon-badge">${s.id===state.profile.id?'✓':'👤'}</div>
+            <div><b style="${s.id===state.profile.id?'color:var(--accent3);':''}">${s.username}</b><br><span class="muted">ID: ${s.id}</span></div>
+          </div>
+          <button class="icon-btn" data-remove-session="${s.id}" style="width:32px;height:32px;">🗑️</button>
+        </div>
+      `).join('') || '<p class="muted">No saved logins yet.</p>'}
+    </div>
+    <button class="btn btn-primary btn-block" id="openLoginFromSettingsBtn" style="margin-top:14px;">Login Another Account</button>`);
+}
+function modalCreateClan(){
+  return modalWrap('Create My First Clan', `
+    <div class="field"><label>Clan Name</label><input type="text" id="clanNameInput" placeholder="e.g. Violet Ascendancy"></div>
+    <div class="field"><label>Choose a Crest</label>
+      <div class="grid4">${CREST_OPTIONS.map(e=>`<button class="btn btn-ghost crest-opt ${ui.selectedCrest===e?'picked':''}" data-crest="${e}">${e}</button>`).join('')}</div>
+    </div>
+    <button class="btn btn-primary btn-block" id="confirmCreateClan" style="margin-top:6px;">Found Clan</button>`);
+}
+function modalBrowseClans(){
+  const clans = modalPayload || [];
+  return modalWrap('Browse Clans', `
+    <div class="card" style="max-height:320px; overflow-y:auto;">
+      ${clans.length ? clans.map(c=>`
+        <div class="list-item">
+          <div class="list-left"><div class="icon-badge" style="font-size:20px;">${c.crest}</div><div><b>${c.name}</b><br><span class="muted">Lv.${c.level} · ${c.memberCount} members</span></div></div>
+          <button class="btn btn-primary" data-join-clan="${c.id}" style="padding:6px 12px; font-size:12px;">Join</button>
+        </div>
+      `).join('') : '<p class="muted">No clans exist yet — be the first to create one!</p>'}
+    </div>`);
+}
+function modalAddFriend(){
+  return modalWrap('Add Friend', `
+    <p class="muted">Enter a real player's exact username or account ID.</p>
+    <div class="field"><label>ID or Username</label><input type="text" id="addFriendQuery" placeholder="e.g. Voraxen or 550158228620"></div>
+    <button class="btn btn-primary btn-block" id="confirmAddFriend">Add Friend</button>`);
+}
+function modalConfirm(payload){
+  return modalWrap(payload.title, `
+    <p class="muted">${payload.message}</p>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-block" id="confirmCancelBtn">Cancel</button>
+      <button class="btn btn-danger btn-block" id="confirmOkBtn">Confirm</button>
+    </div>`);
+}
+
+/* ============================================================
+   EVENT BINDING — screen
+============================================================ */
+function bindScreenEvents(){
+  document.querySelectorAll('[data-nav]').forEach(el=>el.onclick = ()=>{ ui.tab = el.dataset.nav; render(); });
+  document.querySelectorAll('[data-open]').forEach(el=>el.onclick = ()=>{ if(el.dataset.open!=='none') openModal(el.dataset.open); });
+  document.querySelectorAll('[data-quest]').forEach(el=>el.onclick = ()=> showToast('Event coming soon!'));
+
+  const claim = document.getElementById('claimDaily');
+  if(claim) claim.onclick = async ()=>{
+    const res = await api('POST','/api/topup', { currency:'tickets', amount:20 });
+    if(res.ok){ state.profile = res.data.user; showToast('+20 Tickets claimed!'); render(); }
+    else showToast(res.error);
+  };
+
+  document.querySelectorAll('[data-sub]').forEach(el=>el.onclick=()=>{ ui.avatarSub = el.dataset.sub; render(); });
+  document.querySelectorAll('[data-avatar-jump]').forEach(el=>el.onclick=()=>{ ui.avatarSub = el.dataset.avatarJump; render(); });
+
+  document.querySelectorAll('[data-shop-action]').forEach(el=>el.onclick=async ()=>{
+    const id = el.dataset.shopId, action = el.dataset.shopAction;
+    const item = SHOP_ITEMS.find(i=>i.id===id);
+    let res;
+    if(action==='buy') res = await api('POST','/api/shop/buy', { itemId:id });
+    else if(action==='equip') res = await api('PUT','/api/shop/equip', { itemId:id });
+    else res = await api('PUT','/api/shop/equip', { itemId:id, unequip:true });
+    if(res.ok){ state.profile = res.data.user; showToast(`${item.name} ${action==='buy'?'purchased & equipped':action+'ped'}!`); render(); }
+    else showToast(res.error);
+  });
+
+  document.querySelectorAll('#screen .skin-tile[data-skin-id]').forEach(tile=>{
+    tile.addEventListener('click', async (e)=>{
+      if(e.target.closest('[data-del-skin]')) return;
+      const res = await api('PUT','/api/skins/equip', { skinId: tile.dataset.skinId });
+      if(res.ok){ state.profile = res.data.user; showToast('Skin equipped'); render(); } else showToast(res.error);
+    });
+  });
+  document.querySelectorAll('[data-del-skin]').forEach(btn=>{
+    btn.onclick = async (e)=>{
+      e.stopPropagation();
+      const res = await api('DELETE', `/api/skins/${btn.dataset.delSkin}`);
+      if(res.ok){ state.profile = res.data.user; render(); } else showToast(res.error);
+    };
+  });
+  ['skinUpload','skinUploadTop'].forEach(elId=>{
+    const el = document.getElementById(elId);
+    if(!el) return;
+    el.onchange = (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = async ()=>{
+        const res = await api('POST','/api/skins', { name:file.name, dataUrl:reader.result });
+        if(res.ok){ state.profile = res.data.user; ui.avatarSub='myskins'; showToast('Skin uploaded & equipped!'); render(); }
+        else showToast(res.error);
+      };
+      reader.readAsDataURL(file);
+    };
+  });
+
+  const createClanBtn = document.getElementById('createClanBtn');
+  if(createClanBtn) createClanBtn.onclick = ()=>{ ui.selectedCrest='🚩'; openModal('createClan'); };
+  const browseClanBtn = document.getElementById('browseClanBtn');
+  if(browseClanBtn) browseClanBtn.onclick = async ()=>{
+    const res = await api('GET','/api/clans');
+    if(res.ok) openModal('browseClans', res.data.clans); else showToast(res.error);
+  };
+  document.querySelectorAll('[data-clansub]').forEach(el=>el.onclick=()=>{ ui.clanSub = el.dataset.clansub; render(); });
+  const contributeBtn = document.getElementById('contributeBtn');
+  if(contributeBtn) contributeBtn.onclick = async ()=>{
+    const res = await api('POST','/api/clan/contribute', {});
+    if(res.ok){
+      const acubesRes = await api('GET','/api/me');
+      if(acubesRes.ok) state.profile = acubesRes.data.user;
+      const clanRes = await api('GET','/api/clan');
+      if(clanRes.ok) state.clan = clanRes.data.clan;
+      showToast(res.data.leveledUp ? `Clan leveled up to ${res.data.clan.level}!` : 'Contributed 10 A-Cubes to the clan');
+      render();
+    } else showToast(res.error);
+  };
+  const leaveClanBtn = document.getElementById('leaveClanBtn');
+  if(leaveClanBtn) leaveClanBtn.onclick = ()=> openModal('confirm', {title:'Leave Clan?', message:'You will lose your progress in this clan.', action:'leaveClan'});
+
+  document.querySelectorAll('[data-chatsub]').forEach(el=>el.onclick=()=>{ ui.chatSub = el.dataset.chatsub; render(); });
+  document.querySelectorAll('[data-open-thread]').forEach(el=>el.onclick=()=> openThread(el.dataset.openThread));
+  const backBtn = document.getElementById('backToChat');
+  if(backBtn) backBtn.onclick = ()=>{ stopChatPolling(); ui.activeThread = null; render(); };
+
+  const threadSend = document.getElementById('threadSend');
+  const threadInput = document.getElementById('threadInput');
+  async function sendMsg(){
+    const val = threadInput.value.trim();
+    if(!val) return;
+    threadInput.value = '';
+    const res = await api('POST', `/api/chat/${ui.activeThread}`, { text: val });
+    if(res.ok) await pollThread(); else showToast(res.error);
+  }
+  if(threadSend) threadSend.onclick = sendMsg;
+  if(threadInput) threadInput.onkeydown = (e)=>{ if(e.key==='Enter') sendMsg(); };
+
+  const addFriendBtn = document.getElementById('addFriendBtn');
+  if(addFriendBtn) addFriendBtn.onclick = ()=> openModal('addFriend');
+  document.querySelectorAll('[data-remove-friend]').forEach(el=>el.onclick=()=>{
+    const id = el.dataset.removeFriend;
+    const f = state.friendsList.find(x=>x.id===id);
+    openModal('confirm', {title:'Remove Friend?', message:`Remove ${f?f.username:'this friend'} from your friends list?`, action:'removeFriend', payload:id});
+  });
+}
+
+/* ============================================================
+   EVENT BINDING — modals
+============================================================ */
+function bindModalEvents(key){
+  const closeBtn = document.getElementById('closeModalBtn');
+  if(closeBtn) closeBtn.onclick = closeModal;
+
+  document.querySelectorAll('[data-topup]').forEach(el=>el.onclick=async ()=>{
+    const [cur, amt] = el.dataset.topup.split(':');
+    const res = await api('POST','/api/topup', { currency:cur, amount:parseInt(amt) });
+    if(res.ok){ state.profile = res.data.user; showToast(`+${amt} ${cur==='acubes'?'A-Cubes':'Tickets'}`); closeModal(); render(); } else showToast(res.error);
+  });
+  const vipUpgradeBtn = document.getElementById('vipUpgradeBtn');
+  if(vipUpgradeBtn) vipUpgradeBtn.onclick = async ()=>{
+    const res = await api('POST','/api/vip/upgrade', {});
+    if(res.ok){ state.profile = res.data.user; showToast(`Upgraded to VIP ${state.profile.vip}!`); closeModal(); render(); } else showToast(res.error);
+  };
+  const redeemSubmit = document.getElementById('redeemSubmit');
+  if(redeemSubmit) redeemSubmit.onclick = async ()=>{
+    const code = document.getElementById('redeemInput').value.trim();
+    if(!code) return;
+    const res = await api('POST','/api/redeem', { code });
+    if(res.ok){ state.profile = res.data.user; showToast('Code redeemed! +150 Tickets, +50 A-Cubes'); closeModal(); render(); } else showToast(res.error);
+  };
+  const editNameSave = document.getElementById('editNameSave');
+  if(editNameSave) editNameSave.onclick = async ()=>{
+    const username = document.getElementById('editName').value.trim();
+    const intro = document.getElementById('editIntro').value.trim();
+    const res = await api('PUT','/api/profile', { username, intro });
+    if(res.ok){
+      state.profile = res.data.user;
+      const sessions = getSavedSessions().map(s=>s.id===state.profile.id ? {...s, username:state.profile.username} : s);
+      setSavedSessions(sessions);
+      closeModal(); render();
+    } else showToast(res.error);
+  };
+  const previewEditBtn = document.getElementById('previewEditBtn');
+  if(previewEditBtn) previewEditBtn.onclick = ()=> openModal('editProfile');
+  const profilePicUpload = document.getElementById('profilePicUpload');
+  if(profilePicUpload) profilePicUpload.onchange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      const res = await api('PUT','/api/profile', { profilePic: reader.result });
+      if(res.ok){ state.profile = res.data.user; showToast('Profile picture updated'); openModal('acctPreview'); } else showToast(res.error);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const nightToggle = document.getElementById('nightToggle');
+  if(nightToggle) nightToggle.onclick = ()=>{
+    ui.nightmode = !ui.nightmode;
+    document.body.style.filter = ui.nightmode ? 'brightness(0.85) saturate(1.1)' : 'none';
+    nightToggle.classList.toggle('on');
+  };
+  const openAccountsBtn = document.getElementById('openAccountsBtn');
+  if(openAccountsBtn) openAccountsBtn.onclick = ()=> openModal('accounts');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn) logoutBtn.onclick = ()=>{ setActiveToken(null); closeModal(); showAuthGate('login'); };
+
+  document.querySelectorAll('[data-row-switch]').forEach(row=>row.onclick=async (e)=>{
+    if(e.target.closest('[data-remove-session]')) return;
+    const id = row.dataset.rowSwitch;
+    if(id===state.profile.id) return;
+    const session = getSavedSessions().find(s=>s.id===id);
+    if(!session) return;
+    setActiveToken(session.token);
+    const ok = await refreshState();
+    if(ok){ showToast('Account switched'); closeModal(); render(); }
+    else showToast('That saved login has expired — please log in again');
+  });
+  document.querySelectorAll('[data-remove-session]').forEach(el=>el.onclick=(e)=>{
+    e.stopPropagation();
+    forgetSession(el.dataset.removeSession);
+    openModal('accounts');
+  });
+  const openLoginFromSettingsBtn = document.getElementById('openLoginFromSettingsBtn');
+  if(openLoginFromSettingsBtn) openLoginFromSettingsBtn.onclick = ()=>{ closeModal(); showAuthGate('login'); };
+
+  const adminVip = document.getElementById('adminVip');
+  if(adminVip) adminVip.oninput = ()=>{ document.getElementById('vipLabel').textContent = adminVip.value; };
+  const adminClan = document.getElementById('adminClan');
+  if(adminClan) adminClan.oninput = ()=>{ document.getElementById('clanLabel').textContent = adminClan.value; };
+  const infToggle = document.getElementById('infCubeToggle');
+  if(infToggle) infToggle.onclick = ()=>{ infToggle.classList.toggle('on'); };
+  const adminSave = document.getElementById('adminSave');
+  if(adminSave) adminSave.onclick = async ()=>{
+    const res = await api('PUT','/api/admin/user', {
+      vip: parseInt(document.getElementById('adminVip').value),
+      tickets: parseInt(document.getElementById('adminTickets').value)||0,
+      acubes: parseInt(document.getElementById('adminCubes').value)||0,
+      infiniteCubes: document.getElementById('infCubeToggle').classList.contains('on'),
+      clanLevel: state.clan ? parseInt(document.getElementById('adminClan').value) : undefined
+    });
+    if(res.ok){
+      state.profile = res.data.user;
+      if(state.clan){ const c = await api('GET','/api/clan'); if(c.ok) state.clan = c.data.clan; }
+      showToast('Admin changes applied'); closeModal(); render();
+    } else showToast(res.error);
+  };
+  const grantDevBtn = document.getElementById('grantDevBtn');
+  if(grantDevBtn) grantDevBtn.onclick = async ()=>{
+    const id = document.getElementById('grantDevId').value.trim();
+    if(!id) return;
+    const res = await api('POST','/api/admin/grant', { id });
+    if(res.ok){ state.profile._devWhitelist = res.data.devWhitelist; showToast('Developer access granted to ID '+id); openModal('admin'); }
+    else showToast(res.error);
+  };
+  document.querySelectorAll('[data-remove-dev]').forEach(el=>el.onclick=async ()=>{
+    const res = await api('POST','/api/admin/revoke', { id: el.dataset.removeDev });
+    if(res.ok){ state.profile._devWhitelist = res.data.devWhitelist; showToast('Access revoked'); openModal('admin'); }
+    else showToast(res.error);
+  });
+
+  document.querySelectorAll('.crest-opt').forEach(btn=>btn.onclick=()=>{
+    ui.selectedCrest = btn.dataset.crest;
+    document.querySelectorAll('.crest-opt').forEach(b=>b.classList.remove('picked'));
+    btn.classList.add('picked');
+  });
+  const confirmCreateClan = document.getElementById('confirmCreateClan');
+  if(confirmCreateClan) confirmCreateClan.onclick = async ()=>{
+    const name = document.getElementById('clanNameInput').value.trim();
+    const res = await api('POST','/api/clan/create', { name, crest: ui.selectedCrest });
+    if(res.ok){
+      const c = await api('GET','/api/clan'); if(c.ok) state.clan = c.data.clan;
+      showToast('🎉 Your first clan has been founded!'); closeModal(); render();
+    } else showToast(res.error);
+  };
+  document.querySelectorAll('[data-join-clan]').forEach(el=>el.onclick=async ()=>{
+    const res = await api('POST','/api/clan/join', { clanId: el.dataset.joinClan });
+    if(res.ok){
+      const c = await api('GET','/api/clan'); if(c.ok) state.clan = c.data.clan;
+      showToast('Joined clan!'); closeModal(); render();
+    } else showToast(res.error);
+  });
+
+  const confirmAddFriend = document.getElementById('confirmAddFriend');
+  if(confirmAddFriend) confirmAddFriend.onclick = async ()=>{
+    const q = document.getElementById('addFriendQuery').value.trim();
+    if(!q){ showToast('Enter an ID or username'); return; }
+    const res = await api('POST','/api/friends', { idOrUsername: q });
+    if(res.ok){
+      const f = await api('GET','/api/friends'); if(f.ok) state.friendsList = f.data.friends;
+      showToast(`${res.data.friend.username} added to friends`); closeModal(); render();
+    } else showToast(res.error);
+  };
+
+  const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+  if(confirmCancelBtn) confirmCancelBtn.onclick = closeModal;
+  const confirmOkBtn = document.getElementById('confirmOkBtn');
+  if(confirmOkBtn) confirmOkBtn.onclick = async ()=>{
+    const p = modalPayload;
+    if(!p){ closeModal(); return; }
+    if(p.action==='leaveClan'){
+      const res = await api('POST','/api/clan/leave', {});
+      if(res.ok){ state.clan = null; showToast('Left the clan'); } else showToast(res.error);
+    } else if(p.action==='removeFriend'){
+      const res = await api('DELETE', `/api/friends/${p.payload}`);
+      if(res.ok){ const f = await api('GET','/api/friends'); if(f.ok) state.friendsList = f.data.friends; }
+      else showToast(res.error);
+    }
+    closeModal(); render();
+  };
+
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('/sw.js').catch(()=>{}); });
+}
+boot();
+</script>
+</body>
+</html>
